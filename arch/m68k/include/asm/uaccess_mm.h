@@ -164,33 +164,33 @@ extern int __get_user_bad(void);
 				__get_user_asm(__gu_err, x, ptr, u32, l, r, -EFAULT);	\
 				break;							\
 				/*	case 8:	disabled because gcc-4.1 has a broken typeof		\
-				 	    {								\
-				 		const void *__gu_ptr = (ptr);				\
-				 		u64 __gu_val;						\
-						asm volatile ("\n"					\
-							"1:	"MOVES".l	(%2)+,%1\n"		\
-							"2:	"MOVES".l	(%2),%R1\n"		\
-							"3:\n"						\
-							"	.section .fixup,\"ax\"\n"		\
-							"	.even\n"				\
-							"10:	move.l	%3,%0\n"			\
-							"	sub.l	%1,%1\n"			\
-							"	sub.l	%R1,%R1\n"			\
-							"	jra	3b\n"				\
-							"	.previous\n"				\
-							"\n"						\
-							"	.section __ex_table,\"a\"\n"		\
-							"	.align	4\n"				\
-							"	.long	1b,10b\n"			\
-							"	.long	2b,10b\n"			\
-							"	.previous"				\
-							: "+d" (__gu_err), "=&r" (__gu_val),		\
-							  "+a" (__gu_ptr)				\
-							: "i" (-EFAULT)					\
-							: "memory");					\
-						(x) = (__force typeof(*(ptr)))__gu_val;			\
-						break;							\
-					    }	*/							\
+							 	    {								\
+							 		const void *__gu_ptr = (ptr);				\
+							 		u64 __gu_val;						\
+									asm volatile ("\n"					\
+										"1:	"MOVES".l	(%2)+,%1\n"		\
+										"2:	"MOVES".l	(%2),%R1\n"		\
+										"3:\n"						\
+										"	.section .fixup,\"ax\"\n"		\
+										"	.even\n"				\
+										"10:	move.l	%3,%0\n"			\
+										"	sub.l	%1,%1\n"			\
+										"	sub.l	%R1,%R1\n"			\
+										"	jra	3b\n"				\
+										"	.previous\n"				\
+										"\n"						\
+										"	.section __ex_table,\"a\"\n"		\
+										"	.align	4\n"				\
+										"	.long	1b,10b\n"			\
+										"	.long	2b,10b\n"			\
+										"	.previous"				\
+										: "+d" (__gu_err), "=&r" (__gu_val),		\
+										  "+a" (__gu_ptr)				\
+										: "i" (-EFAULT)					\
+										: "memory");					\
+									(x) = (__force typeof(*(ptr)))__gu_val;			\
+									break;							\
+								    }	*/							\
 			default:							\
 				__gu_err = __get_user_bad();				\
 				break;							\

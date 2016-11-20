@@ -316,8 +316,8 @@ struct thread_struct
 
 #define INIT_THREAD  {						\
 		/*							\
-		 * Saved main processor registers			\
-		 */							\
+			 * Saved main processor registers			\
+			 */							\
 		.reg16			= 0,				\
 						  .reg17			= 0,				\
 											.reg18			= 0,				\
@@ -330,46 +330,46 @@ struct thread_struct
 																									.reg30			= 0,				\
 																											.reg31			= 0,				\
 																													/*							\
-																													 * Saved cp0 stuff					\
-																													 */							\
+																																																		 * Saved cp0 stuff					\
+																																																		 */							\
 																													.cp0_status		= 0,				\
 																															/*							\
-																															 * Saved FPU/FPU emulator stuff				\
-																															 */							\
+																																																						 * Saved FPU/FPU emulator stuff				\
+																																																						 */							\
 																															.fpu			= {				\
 		.fpr		= {{{0,},},},			\
 		.fcr31		= 0,				\
 					  .msacsr		= 0,				\
 																																	 },							\
 		/*							\
-		 * FPU affinity state (null if not FPAFF)		\
-		 */							\
+			 * FPU affinity state (null if not FPAFF)		\
+			 */							\
 		FPAFF_INIT						\
 		/* Delay slot emulation */				\
 		.bd_emu_frame = ATOMIC_INIT(BD_EMUFRAME_NONE),		\
 						.bd_emu_branch_pc = 0,					\
 											.bd_emu_cont_pc = 0,					\
 													/*							\
-													 * Saved DSP stuff					\
-													 */							\
+																						 * Saved DSP stuff					\
+																						 */							\
 													.dsp			= {				\
 																					.dspr		= {0, },			\
 																					.dspcontrol	= 0,				\
 															 },							\
 															/*							\
-															 * saved watch register stuff				\
-															 */							\
+																										 * saved watch register stuff				\
+																										 */							\
 		.watch = {{{0,},},},					\
 		/*							\
-		 * Other stuff associated with the process		\
-		 */							\
+			 * Other stuff associated with the process		\
+			 */							\
 		.cp0_badvaddr		= 0,				\
 							  .cp0_baduaddr		= 0,				\
 									  .error_code		= 0,				\
 											  .trap_nr		= 0,				\
 													  /*							\
-													   * Platform specific cop2 registers(null if no COP2)	\
-													   */							\
+													  									   * Platform specific cop2 registers(null if no COP2)	\
+													  									   */							\
 													  COP2_INIT						\
 	}
 

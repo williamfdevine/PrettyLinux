@@ -75,9 +75,9 @@
 		asm("" : "=r" (__funcp_address) : "0" (funcp));			\
 		\
 		/*								\
-		 * Ensure alignment of source and destination addresses,	\
-		 * disregarding the function's Thumb bit:			\
-		 */								\
+			 * Ensure alignment of source and destination addresses,	\
+			 * disregarding the function's Thumb bit:			\
+			 */								\
 		BUG_ON((uintptr_t)(dest_buf) & (FNCPY_ALIGN - 1) ||		\
 			   (__funcp_address & ~(uintptr_t)1 & (FNCPY_ALIGN - 1)));	\
 		\

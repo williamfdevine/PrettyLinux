@@ -100,11 +100,11 @@ void __init sun3x_prom_init(void)
 {
 	/* Read the vector table */
 
-	sun3x_putchar = *(void (* *)(int)) (SUN3X_P_PUTCHAR);
-	sun3x_getchar = *(int (* *)(void)) (SUN3X_P_GETCHAR);
-	sun3x_mayget = *(int (* *)(void))  (SUN3X_P_MAYGET);
-	sun3x_mayput = *(int (* *)(int))   (SUN3X_P_MAYPUT);
-	sun3x_prom_reboot = *(void (* *)(void)) (SUN3X_P_REBOOT);
+	sun3x_putchar = *(void ( * *)(int)) (SUN3X_P_PUTCHAR);
+	sun3x_getchar = *(int ( * *)(void)) (SUN3X_P_GETCHAR);
+	sun3x_mayget = *(int ( * *)(void))  (SUN3X_P_MAYGET);
+	sun3x_mayput = *(int ( * *)(int))   (SUN3X_P_MAYPUT);
+	sun3x_prom_reboot = *(void ( * *)(void)) (SUN3X_P_REBOOT);
 	sun3x_prom_abort = *(e_vector *)  (SUN3X_P_ABORT);
 	romvec = (struct linux_romvec *)SUN3X_PROM_BASE;
 

@@ -92,13 +92,14 @@ static ssize_t mv64x60_hs_reg_write(struct file *filp, struct kobject *kobj,
 
 static struct bin_attribute mv64x60_hs_reg_attr =   /* Hotswap register */
 {
-	.attr = {
+	.attr =
+	{
 		.name = "hs_reg",
 		.mode = S_IRUGO | S_IWUSR,
 	},
 	.size  = MV64X60_VAL_LEN_MAX,
-	.read  = mv64x60_hs_reg_read,
-	.write = mv64x60_hs_reg_write,
+	 .read  = mv64x60_hs_reg_read,
+	  .write = mv64x60_hs_reg_write,
 };
 
 static int __init mv64x60_sysfs_init(void)

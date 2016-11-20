@@ -48,9 +48,9 @@
 		unsigned int val;						\
 		\
 		/*								\
-		 * Explicit full memory barrier needed before/after as		\
-		 * LLOCK/SCOND thmeselves don't provide any such semantics	\
-		 */								\
+			 * Explicit full memory barrier needed before/after as		\
+			 * LLOCK/SCOND thmeselves don't provide any such semantics	\
+			 */								\
 		smp_mb();							\
 		\
 		__asm__ __volatile__(						\
@@ -74,9 +74,9 @@
 		unsigned int val, orig;						\
 		\
 		/*								\
-		 * Explicit full memory barrier needed before/after as		\
-		 * LLOCK/SCOND thmeselves don't provide any such semantics	\
-		 */								\
+			 * Explicit full memory barrier needed before/after as		\
+			 * LLOCK/SCOND thmeselves don't provide any such semantics	\
+			 */								\
 		smp_mb();							\
 		\
 		__asm__ __volatile__(						\
@@ -146,8 +146,8 @@ static inline void atomic_set(atomic_t *v, int i)
 		unsigned long temp;						\
 		\
 		/*								\
-		 * spin lock/unlock provides the needed smp_mb() before/after	\
-		 */								\
+			 * spin lock/unlock provides the needed smp_mb() before/after	\
+			 */								\
 		atomic_ops_lock(flags);						\
 		temp = v->counter;						\
 		temp c_op i;							\
@@ -164,8 +164,8 @@ static inline void atomic_set(atomic_t *v, int i)
 		unsigned long orig;						\
 		\
 		/*								\
-		 * spin lock/unlock provides the needed smp_mb() before/after	\
-		 */								\
+			 * spin lock/unlock provides the needed smp_mb() before/after	\
+			 */								\
 		atomic_ops_lock(flags);						\
 		orig = v->counter;						\
 		v->counter c_op i;						\
@@ -319,9 +319,9 @@ static inline void atomic_set(atomic_t *v, int i)
 		int c, old;							\
 		\
 		/*								\
-		 * Explicit full memory barrier needed before/after as		\
-		 * LLOCK/SCOND thmeselves don't provide any such semantics	\
-		 */								\
+			 * Explicit full memory barrier needed before/after as		\
+			 * LLOCK/SCOND thmeselves don't provide any such semantics	\
+			 */								\
 		smp_mb();							\
 		\
 		c = atomic_read(v);						\

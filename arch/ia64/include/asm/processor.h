@@ -335,9 +335,9 @@ struct thread_struct
 		regs->r12 = new_sp - 16;	/* allocate 16 byte scratch area */			\
 		if (unlikely(get_dumpable(current->mm) != SUID_DUMP_USER)) {	\
 			/*										\
-				 * Zap scratch regs to avoid leaking bits between processes with different	\
-				 * uid/privileges.								\
-				 */										\
+						 * Zap scratch regs to avoid leaking bits between processes with different	\
+						 * uid/privileges.								\
+						 */										\
 			regs->ar_pfs = 0; regs->b0 = 0; regs->pr = 0;					\
 			regs->r1 = 0; regs->r9  = 0; regs->r11 = 0; regs->r13 = 0; regs->r15 = 0;	\
 		}											\

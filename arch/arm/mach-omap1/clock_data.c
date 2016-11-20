@@ -544,12 +544,12 @@ static struct uart_clk uart3_16xx =
 static struct clk usb_clko =  	/* 6 MHz output on W4_USB_CLKO */
 {
 	.name		= "usb_clko",
-	.ops		= &clkops_generic,
-	/* Direct from ULPD, no parent */
-	.rate		= 6000000,
-	.flags		= ENABLE_REG_32BIT,
-	.enable_reg	= OMAP1_IO_ADDRESS(ULPD_CLOCK_CTRL),
-	.enable_bit	= USB_MCLK_EN_BIT,
+		  .ops		= &clkops_generic,
+				 /* Direct from ULPD, no parent */
+				 .rate		= 6000000,
+					   .flags		= ENABLE_REG_32BIT,
+							.enable_reg	= OMAP1_IO_ADDRESS(ULPD_CLOCK_CTRL),
+							 .enable_bit	= USB_MCLK_EN_BIT,
 };
 
 static struct clk usb_hhc_ck1510 =

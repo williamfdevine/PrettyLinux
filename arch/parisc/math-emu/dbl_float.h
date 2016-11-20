@@ -350,7 +350,7 @@
 	if( shift >= 32 ) 							\
 	{								\
 		/* Big shift requires examining the portion shift off 		\
-		the end to properly set inexact.  */				\
+			the end to properly set inexact.  */				\
 		if(shift < 64)							\
 		{								\
 			if(shift > 32)						\

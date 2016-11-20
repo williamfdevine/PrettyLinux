@@ -353,9 +353,9 @@ static inline void __ptep_set_access_flags(struct mm_struct *mm,
 #define MAX_SWAPFILES_CHECK() do { \
 		BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > SWP_TYPE_BITS); \
 		/*							\
-		 * Don't have overlapping bits with _PAGE_HPTEFLAGS	\
-		 * We filter HPTEFLAGS on set_pte.			\
-		 */							\
+			 * Don't have overlapping bits with _PAGE_HPTEFLAGS	\
+			 * We filter HPTEFLAGS on set_pte.			\
+			 */							\
 		BUILD_BUG_ON(_PAGE_HPTEFLAGS & (0x1f << _PAGE_BIT_SWAP_TYPE)); \
 	} while (0)
 /*

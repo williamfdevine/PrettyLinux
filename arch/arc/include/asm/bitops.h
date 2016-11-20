@@ -69,9 +69,9 @@
 		nr &= 0x1f;							\
 		\
 		/*								\
-		 * Explicit full memory barrier needed before/after as		\
-		 * LLOCK/SCOND themselves don't provide any such smenatic	\
-		 */								\
+			 * Explicit full memory barrier needed before/after as		\
+			 * LLOCK/SCOND themselves don't provide any such smenatic	\
+			 */								\
 		smp_mb();							\
 		\
 		__asm__ __volatile__(						\
@@ -113,8 +113,8 @@
 		m += nr >> 5;							\
 		\
 		/*								\
-		 * spin lock/unlock provide the needed smp_mb() before/after	\
-		 */								\
+			 * spin lock/unlock provide the needed smp_mb() before/after	\
+			 */								\
 		bitops_lock(flags);						\
 		\
 		temp = *m;							\

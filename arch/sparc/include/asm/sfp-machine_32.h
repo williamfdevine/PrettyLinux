@@ -108,7 +108,7 @@
 #define __FP_FRAC_ADD_4(r3,r2,r1,r0,x3,x2,x1,x0,y3,y2,y1,y0)		\
 	do {									\
 		/* We need to fool gcc,  as we need to pass more than 10		\
-		   input/outputs.  */						\
+			   input/outputs.  */						\
 		register USItype _t1 __asm__ ("g1"), _t2 __asm__ ("g2");		\
 		__asm__ __volatile__ (						\
 				"addcc %r8,%9,%1\n\t"					\
@@ -133,7 +133,7 @@
 #define __FP_FRAC_SUB_4(r3,r2,r1,r0,x3,x2,x1,x0,y3,y2,y1,y0)		\
 	do {									\
 		/* We need to fool gcc,  as we need to pass more than 10		\
-		   input/outputs.  */						\
+			   input/outputs.  */						\
 		register USItype _t1 __asm__ ("g1"), _t2 __asm__ ("g2");		\
 		__asm__ __volatile__ (						\
 				"subcc %r8,%9,%1\n\t"					\
